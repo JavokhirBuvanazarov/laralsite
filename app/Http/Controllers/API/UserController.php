@@ -4,7 +4,8 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Hash;
+use App\User;
 class UserController extends Controller
 {
     /**
@@ -14,7 +15,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        //
+        return User::latest()->paginate(10);
     }
 
     /**
@@ -24,8 +25,22 @@ class UserController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    {
-        //
+    {   
+        $this->validate($request, [
+            'name' => 'required|string|max:191',
+            'email' => 'required|string|email|unique:users|max:191',
+            'password' => 'required|string|min:6',
+        ]);
+
+        return User::create([
+            'name' => $request['name'],
+            'email' => $request['email'],
+            'type' => $request['type'],
+            'bio' => $request['bio'],
+            'photo' => $request['photo'],
+            'password' => Hash::make($request['password']),
+        ]);
+        // return $request->all();
     }
 
     /**
@@ -59,6 +74,10 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $user = User::findOrFail($id);
+
+        $user->delete();
+
+        return ['message' => 'User deleted'];
     }
 }
